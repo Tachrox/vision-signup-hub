@@ -1,5 +1,5 @@
 
-import { History, MapPin, Eye } from "lucide-react";
+import { History, MapPin, Eye, User } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -14,6 +14,11 @@ import { Link } from "react-router-dom";
 
 const menuItems = [
   {
+    title: "Disease Prediction",
+    url: "/prediction",
+    icon: Eye,
+  },
+  {
     title: "Patient History",
     url: "/history",
     icon: History,
@@ -24,9 +29,9 @@ const menuItems = [
     icon: MapPin,
   },
   {
-    title: "Disease Prediction",
-    url: "/prediction",
-    icon: Eye,
+    title: "Login",
+    url: "/signin",
+    icon: User,
   },
 ];
 
