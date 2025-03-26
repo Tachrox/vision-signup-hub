@@ -1,4 +1,3 @@
-
 import { toast } from "@/hooks/use-toast";
 
 // Base URL for the API
@@ -6,8 +5,12 @@ const API_BASE_URL = "http://localhost:5000";
 
 // Types for API responses
 export interface SignInResponse {
-  success: boolean;
-  error?: string;
+  [0]: {
+    uuid?: string;
+    user_can_login: boolean;
+    is_user_valid: boolean;
+    is_valid_password: boolean;
+  };
 }
 
 export interface LoginResponse {
@@ -66,7 +69,7 @@ export const signIn = async (email: string, password: string): Promise<SignInRes
     }
     
     const data = await response.json();
-    return data[0];
+    return data;
   } catch (error) {
     console.error("Sign in error:", error);
     toast({

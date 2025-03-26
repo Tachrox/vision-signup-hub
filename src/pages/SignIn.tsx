@@ -23,24 +23,39 @@ const SignIn = () => {
     try {
       const response = await signIn(email, password);
       
-      if (response.success) {
+      if (
+        response[0]?.user_can_login &&
+        response[0]?.is_user_valid &&
+        response[0]?.is_valid_password
+      ) {
         toast({
           title: "Success",
-          description: "Account created successfully. Please proceed to login.",
+          description: "Login successful. Redirecting...",
         });
-        navigate("/login");
+
+        // Store UUID for future use
+        localStorage.setItem("uuid", response[0].uuid);
+
+        // Redirect after successful login
+        navigate("/prediction");
+      } else if (response[0] && !response[0].is_valid_password) {
+        toast({
+          title: "Error",
+          description: "Invalid password. Please try again.",
+          variant: "destructive",
+        });
       } else {
         toast({
           title: "Error",
-          description: "Error creating account. Email may already be registered.",
-          variant: "destructive"
+          description: "Login failed. Please try again.",
+          variant: "destructive",
         });
       }
     } catch (error) {
       if (error instanceof Error) {
         toast({
           title: "Error",
-          description: error.message || "An error occurred during sign up.",
+          description: error.message || "An error occurred during sign in.",
           variant: "destructive"
         });
       }
@@ -55,16 +70,16 @@ const SignIn = () => {
         <div className="text-center">
           <LogIn className="mx-auto h-12 w-12 text-blue-500" />
           <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900">
-            Sign up for an account
+            Sign in to your account
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            Create your account to get started
+            Enter your credentials to access your account
           </p>
         </div>
 
         <Card className="border-0 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-xl">Sign Up</CardTitle>
+            <CardTitle className="text-xl">Sign In</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -110,15 +125,15 @@ const SignIn = () => {
                 className="w-full bg-blue-500 hover:bg-blue-600"
                 disabled={loading}
               >
-                {loading ? "Creating account..." : "Create account"}
+                {loading ? "Signing in..." : "Sign in"}
               </Button>
             </form>
           </CardContent>
           <CardFooter className="justify-center">
             <p className="text-sm text-gray-600">
-              Already have an account?{" "}
-              <Link to="/login" className="text-blue-500 hover:text-blue-700">
-                Log in
+              Don't have an account?{" "}
+              <Link to="/signup" className="text-blue-500 hover:text-blue-700">
+                Sign up
               </Link>
             </p>
           </CardFooter>
