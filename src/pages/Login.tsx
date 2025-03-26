@@ -6,10 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Eye, EyeOff, LogIn } from "lucide-react";
-import { signIn } from "@/services/api";
+import { login } from "@/services/api";
 import { toast } from "@/hooks/use-toast";
 
-const SignIn = () => {
+const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
@@ -21,18 +21,30 @@ const SignIn = () => {
     setLoading(true);
     
     try {
-      const response = await signIn(email, password);
+      const response = await login(email, password);
       
-      if (response.success) {
+      if (response.uuid && response.is_valid_password) {
         toast({
           title: "Success",
-          description: "Account created successfully. Please proceed to login.",
+          description: "Login successful",
         });
-        navigate("/signin");
+        navigate("/prediction");
+      } else if (!response.is_user_valid) {
+        toast({
+          title: "Error",
+          description: "User not found. Please sign up first.",
+          variant: "destructive"
+        });
+      } else if (!response.is_valid_password) {
+        toast({
+          title: "Error",
+          description: "Invalid password. Please try again.",
+          variant: "destructive"
+        });
       } else {
         toast({
           title: "Error",
-          description: "Error creating account. Email may already be registered.",
+          description: "Login failed. Please try again.",
           variant: "destructive"
         });
       }
@@ -40,7 +52,7 @@ const SignIn = () => {
       if (error instanceof Error) {
         toast({
           title: "Error",
-          description: error.message || "An error occurred during sign up.",
+          description: error.message || "An error occurred during login.",
           variant: "destructive"
         });
       }
@@ -55,16 +67,16 @@ const SignIn = () => {
         <div className="text-center">
           <LogIn className="mx-auto h-12 w-12 text-blue-500" />
           <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900">
-            Sign up for an account
+            Welcome back
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            Create your account to get started
+            Log in to access your account
           </p>
         </div>
 
         <Card className="border-0 shadow-lg">
           <CardHeader>
-            <CardTitle className="text-xl">Sign Up</CardTitle>
+            <CardTitle className="text-xl">Log In</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -110,15 +122,15 @@ const SignIn = () => {
                 className="w-full bg-blue-500 hover:bg-blue-600"
                 disabled={loading}
               >
-                {loading ? "Creating account..." : "Create account"}
+                {loading ? "Logging in..." : "Log in"}
               </Button>
             </form>
           </CardContent>
           <CardFooter className="justify-center">
             <p className="text-sm text-gray-600">
-              Already have an account?{" "}
-              <Link to="/login" className="text-blue-500 hover:text-blue-700">
-                Log in
+              Don't have an account?{" "}
+              <Link to="/signin" className="text-blue-500 hover:text-blue-700">
+                Sign up
               </Link>
             </p>
           </CardFooter>
@@ -128,4 +140,4 @@ const SignIn = () => {
   );
 };
 
-export default SignIn;
+export default Login;
