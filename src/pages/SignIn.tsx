@@ -28,7 +28,7 @@ const SignIn = () => {
           title: "Success",
           description: "Account created successfully. Please proceed to login.",
         });
-        navigate("/signin");
+        navigate("/login");
       } else {
         toast({
           title: "Error",

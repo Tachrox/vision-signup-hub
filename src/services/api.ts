@@ -7,6 +7,7 @@ const API_BASE_URL = "http://localhost:5000";
 // Types for API responses
 export interface SignInResponse {
   success: boolean;
+  error?: string;
 }
 
 export interface LoginResponse {
@@ -60,6 +61,10 @@ export const signIn = async (email: string, password: string): Promise<SignInRes
       method: 'POST'
     });
     
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
     const data = await response.json();
     return data[0];
   } catch (error) {
@@ -78,6 +83,10 @@ export const login = async (email: string, password: string): Promise<LoginRespo
     const response = await fetch(`${API_BASE_URL}/user-login?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`, {
       method: 'POST'
     });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
     
     const data = await response.json();
     const loginResponse = data[0];
@@ -125,6 +134,10 @@ export const registerPatient = async (
       body: formData.toString()
     });
     
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
     return await response.json();
   } catch (error) {
     console.error("Register error:", error);
@@ -153,6 +166,10 @@ export const predictDisease = async (file: File): Promise<PredictionResponse> =>
       body: formData
     });
     
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
     return await response.json();
   } catch (error) {
     console.error("Prediction error:", error);
@@ -175,6 +192,10 @@ export const getPatientHistory = async (): Promise<PredictionHistoryItem[]> => {
     const response = await fetch(`${API_BASE_URL}/prediction-history?uuid=${uuid}`, {
       method: 'GET'
     });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
     
     return await response.json();
   } catch (error) {
