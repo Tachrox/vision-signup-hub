@@ -23,6 +23,7 @@ const SignIn = () => {
     try {
       const response = await signIn(email, password);
       
+      // Handle the API response based on the structure provided by your friend
       if (
         response[0]?.user_can_login &&
         response[0]?.is_user_valid &&
