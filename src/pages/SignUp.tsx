@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -31,20 +30,9 @@ const SignUp = () => {
     e.preventDefault();
     setLoading(true);
     
-    const uuid = getUserId();
-    if (!uuid) {
-      toast({
-        title: "Error",
-        description: "You need to login first to complete registration.",
-        variant: "destructive"
-      });
-      navigate("/login");
-      return;
-    }
-    
     try {
       const response = await registerPatient(
-        uuid,
+        "new-user", // Temporary ID for new registration
         formData.name,
         parseInt(formData.age),
         formData.gender,
@@ -56,9 +44,9 @@ const SignUp = () => {
       if (response.message === "Patient registered successfully") {
         toast({
           title: "Success",
-          description: "Patient registered successfully",
+          description: "Patient registered successfully. Please sign in.",
         });
-        navigate("/prediction");
+        navigate("/signin");
       } else {
         toast({
           title: "Error",

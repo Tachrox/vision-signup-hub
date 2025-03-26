@@ -121,7 +121,9 @@ export const registerPatient = async (
 ): Promise<RegisterResponse> => {
   try {
     const formData = new URLSearchParams();
-    formData.append('uuid', uuid);
+    if (uuid !== "new-user") {
+      formData.append('uuid', uuid);
+    }
     formData.append('name', name);
     formData.append('age', age.toString());
     formData.append('gender', gender);

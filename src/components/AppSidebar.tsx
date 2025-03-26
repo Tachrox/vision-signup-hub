@@ -29,7 +29,7 @@ const menuItems = [
     icon: MapPin,
   },
   {
-    title: "Login",
+    title: "Sign In",
     url: "/signin",
     icon: User,
   },
