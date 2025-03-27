@@ -7,6 +7,15 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDistance } from "date-fns";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Eye } from "lucide-react";
 
 const PatientHistory = () => {
   const [history, setHistory] = useState<PredictionHistoryItem[]>([]);
@@ -16,7 +25,7 @@ const PatientHistory = () => {
   useEffect(() => {
     // Check if user is logged in
     if (!isLoggedIn()) {
-      navigate("/login");
+      navigate("/signin");
       toast({
         title: "Authentication Required",
         description: "Please log in to access this feature",
@@ -39,13 +48,29 @@ const PatientHistory = () => {
     fetchHistory();
   }, [navigate]);
 
+  const getStatusColor = (diagnosis: string) => {
+    switch (diagnosis.toLowerCase()) {
+      case 'normal':
+        return 'bg-green-500';
+      case 'glaucoma':
+        return 'bg-amber-500';
+      case 'cataract':
+        return 'bg-red-500';
+      default:
+        return 'bg-gray-500';
+    }
+  };
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
         <AppSidebar />
-        <main className="flex-1 p-8">
-          <div className="max-w-4xl mx-auto">
-            <h1 className="text-3xl font-bold text-gray-900 mb-8">Patient History</h1>
+        <main className="flex-1 p-4 md:p-8">
+          <div className="max-w-5xl mx-auto">
+            <div className="flex items-center mb-8">
+              <Eye className="h-8 w-8 mr-3 text-blue-500" />
+              <h1 className="text-3xl font-bold text-gray-900">Eye Health History</h1>
+            </div>
             
             {loading ? (
               <div className="text-center py-10">
@@ -68,47 +93,89 @@ const PatientHistory = () => {
               <div className="space-y-6">
                 <Card className="border-0 shadow-lg">
                   <CardHeader>
-                    <CardTitle className="text-xl">Your Prediction History</CardTitle>
+                    <CardTitle className="text-xl">Your Eye Examination History</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="border-b">
-                            <th className="text-left pb-3 pl-4 font-medium text-gray-600">#</th>
-                            <th className="text-left pb-3 font-medium text-gray-600">Date</th>
-                            <th className="text-left pb-3 font-medium text-gray-600">Diagnosis</th>
-                            <th className="text-left pb-3 pr-4 font-medium text-gray-600">Confidence</th>
-                          </tr>
-                        </thead>
-                        <tbody>
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Date</TableHead>
+                            <TableHead>Diagnosis</TableHead>
+                            <TableHead>Confidence</TableHead>
+                            <TableHead>Status</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
                           {history.map((item, index) => (
-                            <tr key={item.id} className="border-b hover:bg-gray-50">
-                              <td className="py-4 pl-4">{index + 1}</td>
-                              <td className="py-4">
-                                {new Date(item.timestamp).toLocaleDateString()}
-                                <span className="block text-xs text-gray-500">
+                            <TableRow key={item._id || index}>
+                              <TableCell>
+                                <div className="font-medium">
+                                  {new Date(item.timestamp).toLocaleDateString()}
+                                </div>
+                                <div className="text-xs text-gray-500">
                                   {formatDistance(new Date(item.timestamp), new Date(), { addSuffix: true })}
-                                </span>
-                              </td>
-                              <td className="py-4 capitalize font-medium">{item.predicted_class}</td>
-                              <td className="py-4 pr-4">
+                                </div>
+                              </TableCell>
+                              <TableCell className="capitalize font-medium">
+                                {item.predicted_class}
+                              </TableCell>
+                              <TableCell>
                                 <div className="flex items-center">
                                   <div className="w-24 bg-gray-200 rounded-full h-2 mr-2">
                                     <div 
-                                      className="bg-blue-600 h-2 rounded-full" 
-                                      style={{ width: `${item.confidence * 100}%` }}
+                                      className={`${getStatusColor(item.predicted_class)} h-2 rounded-full`} 
+                                      style={{ width: `${(item.confidence || 0.8) * 100}%` }}
                                     />
                                   </div>
                                   <span className="text-sm">
-                                    {(item.confidence * 100).toFixed(2)}%
+                                    {((item.confidence || 0.8) * 100).toFixed(0)}%
                                   </span>
                                 </div>
-                              </td>
-                            </tr>
+                              </TableCell>
+                              <TableCell>
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                  item.predicted_class.toLowerCase() === 'normal' 
+                                    ? 'bg-green-100 text-green-800' 
+                                    : item.predicted_class.toLowerCase() === 'glaucoma'
+                                    ? 'bg-amber-100 text-amber-800'
+                                    : 'bg-red-100 text-red-800'
+                                }`}>
+                                  {item.predicted_class.toLowerCase() === 'normal' 
+                                    ? 'Healthy' 
+                                    : 'Needs Attention'}
+                                </span>
+                              </TableCell>
+                            </TableRow>
                           ))}
-                        </tbody>
-                      </table>
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card className="border-0 shadow-lg">
+                  <CardHeader>
+                    <CardTitle className="text-xl">Statistics</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="bg-blue-50 rounded-lg p-4">
+                        <p className="text-sm text-blue-600 mb-1">Total Examinations</p>
+                        <p className="text-2xl font-bold">{history.length}</p>
+                      </div>
+                      <div className="bg-green-50 rounded-lg p-4">
+                        <p className="text-sm text-green-600 mb-1">Healthy Results</p>
+                        <p className="text-2xl font-bold">
+                          {history.filter(item => item.predicted_class.toLowerCase() === 'normal').length}
+                        </p>
+                      </div>
+                      <div className="bg-red-50 rounded-lg p-4">
+                        <p className="text-sm text-red-600 mb-1">Conditions Detected</p>
+                        <p className="text-2xl font-bold">
+                          {history.filter(item => item.predicted_class.toLowerCase() !== 'normal').length}
+                        </p>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
