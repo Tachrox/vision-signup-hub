@@ -1,4 +1,3 @@
-
 import { AppSidebar } from "@/components/AppSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { useState } from "react";
@@ -16,15 +15,15 @@ const DiseasePrediction = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Check if user is logged in
-  if (!isLoggedIn()) {
-    navigate("/login");
-    toast({
-      title: "Authentication Required",
-      description: "Please log in to access this feature",
-      variant: "destructive"
-    });
-  }
+  // Authentication check temporarily disabled
+  // if (!isLoggedIn()) {
+  //   navigate("/login");
+  //   toast({
+  //     title: "Authentication Required",
+  //     description: "Please log in to access this feature",
+  //     variant: "destructive"
+  //   });
+  // }
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];

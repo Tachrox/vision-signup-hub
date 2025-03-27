@@ -15,16 +15,16 @@ const DoctorNearMe = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check if user is logged in
-    if (!isLoggedIn()) {
-      navigate("/signin");
-      toast({
-        title: "Authentication Required",
-        description: "Please log in to access this feature",
-        variant: "destructive"
-      });
-      return;
-    }
+    // Authentication check temporarily disabled
+    // if (!isLoggedIn()) {
+    //   navigate("/signin");
+    //   toast({
+    //     title: "Authentication Required",
+    //     description: "Please log in to access this feature",
+    //     variant: "destructive"
+    //   });
+    //   return;
+    // }
     
     const fetchDoctors = async () => {
       try {
