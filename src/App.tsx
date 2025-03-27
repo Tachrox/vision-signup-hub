@@ -8,7 +8,6 @@ import Index from "./pages/Index";
 import Home from "./pages/Home";
 import SignUp from "./pages/SignUp";
 import SignIn from "./pages/SignIn";
-import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import DiseasePrediction from "./pages/DiseasePrediction";
 import PatientHistory from "./pages/PatientHistory";
@@ -27,7 +26,7 @@ const App = () => (
           <Route path="/home" element={<Home />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/signin" element={<SignIn />} />
-          <Route path="/login" element={<Login />} />
+          <Route path="/login" element={<Navigate to="/signin" replace />} />
           <Route path="/prediction" element={<DiseasePrediction />} />
           <Route path="/history" element={<PatientHistory />} />
           <Route path="/doctors" element={<DoctorNearMe />} />

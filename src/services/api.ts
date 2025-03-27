@@ -69,6 +69,12 @@ export const signIn = async (email: string, password: string): Promise<SignInRes
     }
     
     const data = await response.json();
+    
+    // Store UUID if authentication is successful
+    if (data[0]?.uuid && data[0]?.is_valid_password) {
+      storeUserId(data[0].uuid);
+    }
+    
     return data;
   } catch (error) {
     console.error("Sign in error:", error);
@@ -81,31 +87,13 @@ export const signIn = async (email: string, password: string): Promise<SignInRes
   }
 };
 
+// Keeping login for backward compatibility, but it now just calls signIn
 export const login = async (email: string, password: string): Promise<LoginResponse> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/user-login?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`, {
-      method: 'POST'
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    const loginResponse = data[0];
-    
-    if (loginResponse.uuid) {
-      storeUserId(loginResponse.uuid);
-    }
-    
-    return loginResponse;
+    const response = await signIn(email, password);
+    return response[0];
   } catch (error) {
     console.error("Login error:", error);
-    toast({
-      title: "Error",
-      description: "An error occurred during login. Please try again.",
-      variant: "destructive"
-    });
     throw error;
   }
 };

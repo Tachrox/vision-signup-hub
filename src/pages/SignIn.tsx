@@ -23,7 +23,6 @@ const SignIn = () => {
     try {
       const response = await signIn(email, password);
       
-      // Handle the API response based on the structure provided by your friend
       if (
         response[0]?.user_can_login &&
         response[0]?.is_user_valid &&
@@ -34,11 +33,14 @@ const SignIn = () => {
           description: "Login successful. Redirecting...",
         });
 
-        // Store UUID for future use
-        localStorage.setItem("uuid", response[0].uuid);
-
         // Redirect after successful login
         navigate("/prediction");
+      } else if (response[0] && !response[0].is_user_valid) {
+        toast({
+          title: "Error",
+          description: "User not found. Please sign up first.",
+          variant: "destructive",
+        });
       } else if (response[0] && !response[0].is_valid_password) {
         toast({
           title: "Error",
@@ -71,10 +73,10 @@ const SignIn = () => {
         <div className="text-center">
           <LogIn className="mx-auto h-12 w-12 text-blue-500" />
           <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900">
-            Sign in to your account
+            Welcome back
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            Enter your credentials to access your account
+            Sign in to access your account
           </p>
         </div>
 
