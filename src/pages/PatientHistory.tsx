@@ -16,6 +16,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Eye } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 const PatientHistory = () => {
   const [history, setHistory] = useState<PredictionHistoryItem[]>([]);
@@ -48,13 +49,46 @@ const PatientHistory = () => {
     fetchHistory();
   }, [navigate]);
 
+  // Function to determine severity level based on eye condition
+  const getConditionSeverity = (diagnosis: string): {
+    variant: "healthy" | "warning" | "critical",
+    label: string
+  } => {
+    // Convert diagnosis to lowercase for case-insensitive comparison
+    const condition = diagnosis.toLowerCase();
+    
+    // Low severity conditions - generally not serious or easily treatable
+    if (condition === "normal") {
+      return { variant: "healthy", label: "Healthy" };
+    }
+    
+    // Medium severity conditions - require medical attention but not immediately critical
+    if (["glaucoma", "dry eye", "conjunctivitis", "blepharitis"].includes(condition)) {
+      return { variant: "warning", label: "Needs Attention" };
+    }
+    
+    // High severity conditions - require prompt medical attention
+    if (["cataract", "macular degeneration", "retinal detachment", "diabetic retinopathy"].includes(condition)) {
+      return { variant: "critical", label: "Urgent Care" };
+    }
+    
+    // Default for any unclassified conditions - ensures all conditions are handled
+    return { variant: "warning", label: "Needs Evaluation" };
+  };
+
   const getStatusColor = (diagnosis: string) => {
     switch (diagnosis.toLowerCase()) {
       case 'normal':
         return 'bg-green-500';
       case 'glaucoma':
+      case 'dry eye':
+      case 'conjunctivitis':
+      case 'blepharitis':
         return 'bg-amber-500';
       case 'cataract':
+      case 'macular degeneration':
+      case 'retinal detachment':
+      case 'diabetic retinopathy':
         return 'bg-red-500';
       default:
         return 'bg-gray-500';
@@ -107,47 +141,42 @@ const PatientHistory = () => {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {history.map((item, index) => (
-                            <TableRow key={item._id || index}>
-                              <TableCell>
-                                <div className="font-medium">
-                                  {new Date(item.timestamp).toLocaleDateString()}
-                                </div>
-                                <div className="text-xs text-gray-500">
-                                  {formatDistance(new Date(item.timestamp), new Date(), { addSuffix: true })}
-                                </div>
-                              </TableCell>
-                              <TableCell className="capitalize font-medium">
-                                {item.predicted_class}
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex items-center">
-                                  <div className="w-24 bg-gray-200 rounded-full h-2 mr-2">
-                                    <div 
-                                      className={`${getStatusColor(item.predicted_class)} h-2 rounded-full`} 
-                                      style={{ width: `${(item.confidence || 0.8) * 100}%` }}
-                                    />
+                          {history.map((item, index) => {
+                            const severity = getConditionSeverity(item.predicted_class);
+                            return (
+                              <TableRow key={item._id || index}>
+                                <TableCell>
+                                  <div className="font-medium">
+                                    {new Date(item.timestamp).toLocaleDateString()}
                                   </div>
-                                  <span className="text-sm">
-                                    {((item.confidence || 0.8) * 100).toFixed(0)}%
-                                  </span>
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                  item.predicted_class.toLowerCase() === 'normal' 
-                                    ? 'bg-green-100 text-green-800' 
-                                    : item.predicted_class.toLowerCase() === 'glaucoma'
-                                    ? 'bg-amber-100 text-amber-800'
-                                    : 'bg-red-100 text-red-800'
-                                }`}>
-                                  {item.predicted_class.toLowerCase() === 'normal' 
-                                    ? 'Healthy' 
-                                    : 'Needs Attention'}
-                                </span>
-                              </TableCell>
-                            </TableRow>
-                          ))}
+                                  <div className="text-xs text-gray-500">
+                                    {formatDistance(new Date(item.timestamp), new Date(), { addSuffix: true })}
+                                  </div>
+                                </TableCell>
+                                <TableCell className="capitalize font-medium">
+                                  {item.predicted_class}
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex items-center">
+                                    <div className="w-24 bg-gray-200 rounded-full h-2 mr-2">
+                                      <div 
+                                        className={`${getStatusColor(item.predicted_class)} h-2 rounded-full`} 
+                                        style={{ width: `${(item.confidence || 0.8) * 100}%` }}
+                                      />
+                                    </div>
+                                    <span className="text-sm">
+                                      {((item.confidence || 0.8) * 100).toFixed(0)}%
+                                    </span>
+                                  </div>
+                                </TableCell>
+                                <TableCell>
+                                  <Badge variant={severity.variant}>
+                                    {severity.label}
+                                  </Badge>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
                         </TableBody>
                       </Table>
                     </div>
