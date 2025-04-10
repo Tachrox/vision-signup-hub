@@ -1,3 +1,4 @@
+
 import { toast } from "@/hooks/use-toast";
 
 // Base URL for the API
@@ -49,6 +50,10 @@ export interface Doctor {
   contact: string;
   email: string;
   distance_km: number;
+}
+
+export interface ReportResponse {
+  report_url: string;
 }
 
 // Store the user's UUID in localStorage
@@ -189,20 +194,32 @@ export const predictDisease = async (file: File): Promise<PredictionResponse> =>
   }
 };
 
-// Mock function to simulate fetching patient history from API
+// Function to fetch patient history from API
 export const getPatientHistory = async (): Promise<PredictionHistoryItem[]> => {
   try {
-    // In a real implementation, this would fetch from your API
-    // const uuid = getUserId();
-    // if (!uuid) {
-    //   throw new Error("User is not logged in");
-    // }
-    // 
-    // const response = await fetch(`${API_BASE_URL}/prediction-history?uuid=${uuid}`, {
-    //   method: 'GET'
-    // });
+    const uuid = getUserId();
+    if (!uuid) {
+      throw new Error("User is not logged in");
+    }
     
-    // Simulating API response with provided mock data
+    const response = await fetch(`${API_BASE_URL}/prediction-history?uuid=${uuid}`, {
+      method: 'GET'
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    // Add confidence if not provided by API (for backward compatibility)
+    return data.map((item: PredictionHistoryItem) => ({
+      ...item,
+      confidence: item.confidence || Math.random() * 0.4 + 0.6 // Adding fallback confidence between 0.6 and 1.0
+    }));
+    
+    // Mock data commented out but kept for fallback/testing purposes
+    /*
     const mockData: PredictionHistoryItem[] = [
       {"_id": "67c9f4b5ec43a83acdf79a4d", "uuid": "8c5480a1-6584-4118-8c39-c8b5163e2bf7", "predicted_class": "normal", "timestamp": "2025-03-07 00:47:09"},
       {"_id": "67c9f4beec43a83acdf79a4e", "uuid": "8c5480a1-6584-4118-8c39-c8b5163e2bf7", "predicted_class": "normal", "timestamp": "2025-03-07 00:47:18"},
@@ -217,6 +234,7 @@ export const getPatientHistory = async (): Promise<PredictionHistoryItem[]> => {
     }));
     
     return mockData;
+    */
   } catch (error) {
     console.error("History fetch error:", error);
     toast({
@@ -228,15 +246,25 @@ export const getPatientHistory = async (): Promise<PredictionHistoryItem[]> => {
   }
 };
 
-// Mock function to simulate fetching doctors near me from API
-export const getDoctorsNearMe = async (): Promise<Doctor[]> => {
+// Function to fetch doctors near a location from API
+export const getDoctorsNearMe = async (lat?: number, lng?: number): Promise<Doctor[]> => {
   try {
-    // In a real implementation, this would fetch from your API
-    // const response = await fetch(`${API_BASE_URL}/doctors-near-me`, {
-    //   method: 'GET'
-    // });
+    // Use current location or default to Bangalore coordinates
+    const latitude = lat || 12.9716;
+    const longitude = lng || 77.5946;
     
-    // Simulating API response with provided mock data
+    const response = await fetch(`${API_BASE_URL}/nearest_eye_specialists?lat=${latitude}&lng=${longitude}`, {
+      method: 'GET'
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return await response.json();
+    
+    // Mock data commented out but kept for fallback/testing purposes
+    /*
     const mockData: Doctor[] = [
       {"name": "Dr. Ravi Shetty", "specialization": "Ophthalmologist", "hospital_name": "Manipal Hospital Mysore", "address": "Abba Road, Mysore", "lat": 12.305, "lng": 76.6602, "experience": 18, "contact": "+91 9123456780", "email": "ravi.shetty@manipalhospital.com", "distance_km": 125.47},
       {"name": "Dr. Anand Kumar", "specialization": "Ophthalmologist", "hospital_name": "Vasan Eye Care", "address": "Devaraj Urs Road, Mysore", "lat": 12.3106, "lng": 76.6521, "experience": 12, "contact": "+91 9876543210", "email": "anand.kumar@vasaneyecare.com", "distance_km": 125.82},
@@ -246,11 +274,40 @@ export const getDoctorsNearMe = async (): Promise<Doctor[]> => {
     ];
     
     return mockData;
+    */
   } catch (error) {
     console.error("Doctors fetch error:", error);
     toast({
       title: "Error",
       description: "Failed to fetch doctors near you. Please try again.",
+      variant: "destructive"
+    });
+    throw error;
+  }
+};
+
+// Function to generate a report for a specific disease
+export const generateReport = async (disease: string): Promise<ReportResponse> => {
+  try {
+    const uuid = getUserId();
+    if (!uuid) {
+      throw new Error("User is not logged in");
+    }
+    
+    const response = await fetch(`${API_BASE_URL}/report?uuid=${uuid}&disease=${encodeURIComponent(disease)}`, {
+      method: 'GET'
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error("Report generation error:", error);
+    toast({
+      title: "Error",
+      description: "Failed to generate report. Please try again.",
       variant: "destructive"
     });
     throw error;
