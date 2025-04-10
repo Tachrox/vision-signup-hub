@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { AppSidebar } from "@/components/AppSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { getPatientHistory, isLoggedIn, PredictionHistoryItem } from "@/services/api";
+import { getPatientHistory, isLoggedIn, PredictionHistoryItem } from "@/services";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

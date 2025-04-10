@@ -2,7 +2,7 @@
 import { AppSidebar } from "@/components/AppSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { useState } from "react";
-import { predictDisease, generateReport } from "@/services/api";
+import { predictDisease, generateReport } from "@/services";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { UploadSection } from "@/components/disease-prediction/UploadSection";

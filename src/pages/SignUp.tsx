@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -5,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Eye, EyeOff, User } from "lucide-react";
-import { registerPatient, getUserId } from "@/services/api";
+import { registerPatient, getUserId } from "@/services";
 import { toast } from "@/hooks/use-toast";
 
 const SignUp = () => {
