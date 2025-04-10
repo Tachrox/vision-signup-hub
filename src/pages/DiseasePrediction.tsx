@@ -1,18 +1,22 @@
-import { AppSidebar } from "@/components/AppSidebar";
+
+import { AppSidebar } from "@/components/ui/sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { predictDisease, isLoggedIn } from "@/services/api";
+import { predictDisease, isLoggedIn, generateReport } from "@/services/api";
 import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FileText } from "lucide-react";
 
 const DiseasePrediction = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [prediction, setPrediction] = useState<{ disease: string; confidence: number } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+  const [reportUrl, setReportUrl] = useState<string | null>(null);
   const navigate = useNavigate();
 
   // Authentication check temporarily disabled
@@ -63,6 +67,8 @@ const DiseasePrediction = () => {
     }
 
     setIsLoading(true);
+    setReportUrl(null); // Reset report URL when making a new prediction
+    
     try {
       const result = await predictDisease(selectedImage);
       setPrediction({
@@ -83,6 +89,37 @@ const DiseasePrediction = () => {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleGenerateReport = async () => {
+    if (!prediction) {
+      toast({
+        title: "No Prediction Available",
+        description: "Please analyze an image first to generate a report",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsGeneratingReport(true);
+    try {
+      const result = await generateReport(prediction.disease);
+      setReportUrl(result.report_url);
+      
+      toast({
+        title: "Report Generated",
+        description: "Medical report has been generated successfully",
+      });
+    } catch (error) {
+      console.error("Report generation error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to generate the medical report. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGeneratingReport(false);
     }
   };
 
@@ -174,7 +211,27 @@ const DiseasePrediction = () => {
                           </div>
                         </div>
                         
-                        <div className="pt-2">
+                        <div className="pt-4 flex flex-col gap-4">
+                          <Button 
+                            onClick={handleGenerateReport}
+                            disabled={isGeneratingReport}
+                            className="w-full flex items-center justify-center gap-2"
+                          >
+                            <FileText className="h-4 w-4" />
+                            {isGeneratingReport ? "Generating Report..." : "Generate Medical Report"}
+                          </Button>
+                          
+                          {reportUrl && (
+                            <a 
+                              href={reportUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 text-center underline"
+                            >
+                              View/Download Medical Report
+                            </a>
+                          )}
+                          
                           <p className="text-sm text-gray-600">
                             Note: This prediction is provided for informational purposes only. 
                             Please consult with a healthcare professional for proper diagnosis.
