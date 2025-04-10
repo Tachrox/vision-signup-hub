@@ -1,5 +1,5 @@
 
-import { AppSidebar } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/AppSidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
