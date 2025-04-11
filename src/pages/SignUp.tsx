@@ -1,12 +1,12 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Eye, EyeOff, User, Mail, Lock } from "lucide-react";
-import { userSignUp, verifyOtp, registerPatient } from "@/services";
+import { userSignUp, verifyOtp, registerPatient, getUserId } from "@/services";
 import { toast } from "@/hooks/use-toast";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
@@ -33,8 +33,17 @@ const SignUp = () => {
     phone: "",
     address: "",
   });
+  const [uuid, setUuid] = useState<string>("");
   
   const navigate = useNavigate();
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const userId = getUserId();
+    if (userId) {
+      navigate("/home");
+    }
+  }, [navigate]);
 
   const handleCredentialsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -48,6 +57,15 @@ const SignUp = () => {
 
   const handleSubmitCredentials = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!credentials.email || !credentials.password) {
+      toast({
+        title: "Error",
+        description: "Please enter both email and password",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setLoading(true);
     
     try {
@@ -92,6 +110,15 @@ const SignUp = () => {
 
   const handleVerifyOtp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (otp.length !== 6) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid 6-digit OTP",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setLoading(true);
     
     try {
@@ -104,6 +131,12 @@ const SignUp = () => {
           title: "Success",
           description: response.message || "OTP verified successfully.",
         });
+        
+        // Save UUID if available
+        if (response.uuid) {
+          setUuid(response.uuid);
+        }
+        
         // Move to registration step
         setCurrentStep(SignUpStep.REGISTRATION);
       } else {
@@ -128,12 +161,23 @@ const SignUp = () => {
 
   const handleSubmitRegistration = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
+    // Validate form fields
+    if (!formData.name || !formData.age || !formData.email || !formData.phone || !formData.address) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setLoading(true);
     
     try {
       console.log("Submitting registration form:", formData);
       const response = await registerPatient(
-        credentials.email, // Using email as uuid
+        uuid || getUserId() || "new-user", // Use stored UUID or fallback
         formData.name,
         parseInt(formData.age),
         formData.gender,
@@ -143,12 +187,21 @@ const SignUp = () => {
       );
       console.log("Registration response:", response);
       
-      if (response.message === "Patient registered successfully") {
+      if (response.message === "Patient registered successfully" || response.message.includes("success")) {
         toast({
           title: "Success",
-          description: "Patient registered successfully. Redirecting to sign in.",
+          description: "Patient registered successfully. Redirecting to home page.",
         });
-        navigate("/signin");
+        
+        // Store UUID if provided
+        if (response.uuid) {
+          setUuid(response.uuid);
+        }
+        
+        // Redirect to home page
+        setTimeout(() => {
+          navigate("/home");
+        }, 1500);
       } else {
         toast({
           title: "Error",
@@ -254,7 +307,7 @@ const SignUp = () => {
             <Button
               type="submit"
               className="w-full bg-blue-500 hover:bg-blue-600 mt-4"
-              disabled={loading || otp.length !== 6}
+              disabled={loading}
             >
               {loading ? "Verifying..." : "Verify OTP"}
             </Button>
