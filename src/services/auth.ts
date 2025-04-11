@@ -1,3 +1,4 @@
+
 import { toast } from "@/hooks/use-toast";
 import { API_BASE_URL } from "./config";
 
@@ -57,7 +58,8 @@ export const isLoggedIn = (): boolean => {
 // API call functions
 export const signIn = async (email: string, password: string): Promise<SignInResponse> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/user-signin?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`, {
+    // Updated to use user-login endpoint as specified
+    const response = await fetch(`${API_BASE_URL}/user-login?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`, {
       method: 'POST'
     });
     
@@ -66,6 +68,7 @@ export const signIn = async (email: string, password: string): Promise<SignInRes
     }
     
     const data = await response.json();
+    console.log("Login response:", data);
     
     // Store UUID if authentication is successful
     if (data[0]?.uuid && data[0]?.is_valid_password) {

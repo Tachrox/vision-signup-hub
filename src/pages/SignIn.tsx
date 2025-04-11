@@ -22,6 +22,7 @@ const SignIn = () => {
     
     try {
       const response = await signIn(email, password);
+      console.log("Sign in response:", response);
       
       if (
         response[0]?.user_can_login &&
