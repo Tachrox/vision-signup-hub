@@ -1,7 +1,5 @@
 import { toast } from "@/hooks/use-toast";
-
-// Base URL for the API
-const API_BASE_URL = "http://localhost:5000";
+import { API_BASE_URL } from "./config";
 
 // Types for API responses
 export interface SignInResponse {
@@ -22,6 +20,18 @@ export interface LoginResponse {
 
 export interface RegisterResponse {
   message: string;
+}
+
+export interface SignUpResponse {
+  otp_sent: boolean;
+  message: string;
+  error?: string;
+}
+
+export interface VerifyOtpResponse {
+  authenticated: boolean;
+  message: string;
+  error?: string;
 }
 
 // Store the user's UUID in localStorage
@@ -81,6 +91,56 @@ export const login = async (email: string, password: string): Promise<LoginRespo
     return response[0];
   } catch (error) {
     console.error("Login error:", error);
+    throw error;
+  }
+};
+
+// User signup function
+export const userSignUp = async (email: string, password: string): Promise<SignUpResponse> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/user-signup?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`, {
+      method: 'POST'
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error("Sign up error:", error);
+    toast({
+      title: "Error",
+      description: "An error occurred during sign up. Please try again.",
+      variant: "destructive"
+    });
+    throw error;
+  }
+};
+
+// Verify OTP function
+export const verifyOtp = async (email: string, password: string, otp: string): Promise<VerifyOtpResponse> => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/verify-otp`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email, password, otp })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error("OTP verification error:", error);
+    toast({
+      title: "Error",
+      description: "An error occurred during OTP verification. Please try again.",
+      variant: "destructive"
+    });
     throw error;
   }
 };
