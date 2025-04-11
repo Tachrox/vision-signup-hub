@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Eye, EyeOff, User, Mail, Lock, KeyRound } from "lucide-react";
+import { Eye, EyeOff, User, Mail, Lock } from "lucide-react";
 import { userSignUp, verifyOtp, registerPatient } from "@/services";
 import { toast } from "@/hooks/use-toast";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
@@ -51,12 +51,14 @@ const SignUp = () => {
     setLoading(true);
     
     try {
+      console.log("Submitting credentials:", credentials);
       const response = await userSignUp(credentials.email, credentials.password);
+      console.log("SignUp response:", response);
       
       if (response.otp_sent) {
         toast({
           title: "Success",
-          description: response.message,
+          description: response.message || "OTP sent successfully. Please verify.",
         });
         // Move to OTP verification step
         setCurrentStep(SignUpStep.OTP_VERIFICATION);
@@ -71,7 +73,7 @@ const SignUp = () => {
       } else {
         toast({
           title: "Warning",
-          description: response.message,
+          description: response.message || "Failed to send OTP. Please try again.",
           variant: "destructive"
         });
       }
@@ -93,19 +95,21 @@ const SignUp = () => {
     setLoading(true);
     
     try {
+      console.log("Verifying OTP:", { email: credentials.email, password: credentials.password, otp });
       const response = await verifyOtp(credentials.email, credentials.password, otp);
+      console.log("OTP verification response:", response);
       
       if (response.authenticated) {
         toast({
           title: "Success",
-          description: response.message,
+          description: response.message || "OTP verified successfully.",
         });
         // Move to registration step
         setCurrentStep(SignUpStep.REGISTRATION);
       } else {
         toast({
           title: "Error",
-          description: response.message,
+          description: response.message || "Invalid or expired OTP.",
           variant: "destructive"
         });
       }
@@ -127,6 +131,7 @@ const SignUp = () => {
     setLoading(true);
     
     try {
+      console.log("Submitting registration form:", formData);
       const response = await registerPatient(
         credentials.email, // Using email as uuid
         formData.name,
@@ -136,6 +141,7 @@ const SignUp = () => {
         formData.phone,
         formData.address
       );
+      console.log("Registration response:", response);
       
       if (response.message === "Patient registered successfully") {
         toast({
@@ -146,7 +152,7 @@ const SignUp = () => {
       } else {
         toast({
           title: "Error",
-          description: "Failed to register patient",
+          description: response.message || "Failed to register patient",
           variant: "destructive"
         });
       }

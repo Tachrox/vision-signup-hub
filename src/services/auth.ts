@@ -58,6 +58,8 @@ export const isLoggedIn = (): boolean => {
 // API call functions
 export const signIn = async (email: string, password: string): Promise<SignInResponse> => {
   try {
+    console.log(`Attempting login with endpoint: ${API_BASE_URL}/user-login?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`);
+    
     // Updated to use user-login endpoint as specified
     const response = await fetch(`${API_BASE_URL}/user-login?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`, {
       method: 'POST'
@@ -101,15 +103,22 @@ export const login = async (email: string, password: string): Promise<LoginRespo
 // User signup function
 export const userSignUp = async (email: string, password: string): Promise<SignUpResponse> => {
   try {
+    console.log(`Attempting signup with endpoint: ${API_BASE_URL}/user-signup?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`);
+    
     const response = await fetch(`${API_BASE_URL}/user-signup?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`, {
-      method: 'POST'
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json'
+      }
     });
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     
-    return await response.json();
+    const data = await response.json();
+    console.log("Signup response:", data);
+    return data;
   } catch (error) {
     console.error("Sign up error:", error);
     toast({
@@ -124,10 +133,13 @@ export const userSignUp = async (email: string, password: string): Promise<SignU
 // Verify OTP function
 export const verifyOtp = async (email: string, password: string, otp: string): Promise<VerifyOtpResponse> => {
   try {
+    console.log(`Verifying OTP for email: ${email}`);
+    
     const response = await fetch(`${API_BASE_URL}/verify-otp`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
       },
       body: JSON.stringify({ email, password, otp })
     });
@@ -136,7 +148,9 @@ export const verifyOtp = async (email: string, password: string, otp: string): P
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     
-    return await response.json();
+    const data = await response.json();
+    console.log("OTP verification response:", data);
+    return data;
   } catch (error) {
     console.error("OTP verification error:", error);
     toast({
@@ -158,6 +172,8 @@ export const registerPatient = async (
   address: string
 ): Promise<RegisterResponse> => {
   try {
+    console.log(`Registering patient with email: ${email}`);
+    
     const formData = new URLSearchParams();
     if (uuid !== "new-user") {
       formData.append('uuid', uuid);
@@ -168,6 +184,8 @@ export const registerPatient = async (
     formData.append('email', email);
     formData.append('phone', phone);
     formData.append('address', address);
+    
+    console.log("Register patient form data:", formData.toString());
     
     const response = await fetch(`${API_BASE_URL}/register-patient`, {
       method: 'POST',
@@ -181,7 +199,9 @@ export const registerPatient = async (
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     
-    return await response.json();
+    const data = await response.json();
+    console.log("Register patient response:", data);
+    return data;
   } catch (error) {
     console.error("Register error:", error);
     toast({
