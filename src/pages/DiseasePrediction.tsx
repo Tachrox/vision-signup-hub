@@ -38,7 +38,14 @@ const DiseasePrediction = () => {
   };
 
   const handlePredict = async () => {
-    if (!selectedImage) return;
+    if (!selectedImage) {
+      toast({
+        title: "No Image Selected",
+        description: "Please select an image to analyze",
+        variant: "destructive"
+      });
+      return;
+    }
 
     setIsLoading(true);
     setReportUrl(null); // Reset report URL when making a new prediction
@@ -87,11 +94,7 @@ const DiseasePrediction = () => {
       });
     } catch (error) {
       console.error("Report generation error:", error);
-      toast({
-        title: "Error",
-        description: "Failed to generate the medical report. Please try again.",
-        variant: "destructive"
-      });
+      // Error toast is already handled in the generateReport function
     } finally {
       setIsGeneratingReport(false);
     }
