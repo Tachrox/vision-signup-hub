@@ -97,10 +97,10 @@ const SignUp = () => {
       if (response.message === "Patient registered successfully" || response.message.includes("success")) {
         toast({
           title: "Success",
-          description: "Registration successful. Redirecting to home page.",
+          description: "Registration successful. Redirecting to prediction page.",
         });
         setTimeout(() => {
-          navigate("/home");
+          navigate("/prediction");
         }, 1500);
       } else {
         toast({
