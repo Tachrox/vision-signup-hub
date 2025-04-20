@@ -1,14 +1,13 @@
 
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Eye, EyeOff, User, Mail, Lock } from "lucide-react";
+import { User } from "lucide-react";
 import { userSignUp, verifyOtp, registerPatient, getUserId } from "@/services";
 import { toast } from "@/hooks/use-toast";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import SignUpCredentials from "@/components/signup/SignUpCredentials";
+import OTPVerification from "@/components/signup/OTPVerification";
+import PatientRegistration from "@/components/signup/PatientRegistration";
 
 enum SignUpStep {
   CREDENTIALS = 'credentials',
@@ -17,27 +16,12 @@ enum SignUpStep {
 }
 
 const SignUp = () => {
-  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState<SignUpStep>(SignUpStep.CREDENTIALS);
-  const [credentials, setCredentials] = useState({
-    email: "",
-    password: "",
-  });
-  const [otp, setOtp] = useState("");
-  const [formData, setFormData] = useState({
-    name: "",
-    age: "",
-    gender: "Male",
-    email: "",
-    phone: "",
-    address: "",
-  });
+  const [credentials, setCredentials] = useState({ email: "", password: "" });
   const [uuid, setUuid] = useState<string>("");
-  
   const navigate = useNavigate();
 
-  // Check if user is already logged in
   useEffect(() => {
     const userId = getUserId();
     if (userId) {
@@ -45,139 +29,63 @@ const SignUp = () => {
     }
   }, [navigate]);
 
-  const handleCredentialsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setCredentials(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handlePatientFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmitCredentials = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!credentials.email || !credentials.password) {
-      toast({
-        title: "Error",
-        description: "Please enter both email and password",
-        variant: "destructive"
-      });
-      return;
-    }
-    
+  const handleCredentialsSubmit = async (email: string, password: string) => {
     setLoading(true);
-    
     try {
-      console.log("Submitting credentials:", credentials);
-      const response = await userSignUp(credentials.email, credentials.password);
-      console.log("SignUp response:", response);
-      
+      setCredentials({ email, password });
+      const response = await userSignUp(email, password);
       if (response.otp_sent) {
         toast({
           title: "Success",
           description: response.message || "OTP sent successfully. Please verify.",
         });
-        // Move to OTP verification step
         setCurrentStep(SignUpStep.OTP_VERIFICATION);
-        // Pre-fill the email in the registration form
-        setFormData(prev => ({ ...prev, email: credentials.email }));
-      } else if (response.error) {
-        toast({
-          title: "Error",
-          description: response.error,
-          variant: "destructive"
-        });
       } else {
         toast({
-          title: "Warning",
-          description: response.message || "Failed to send OTP. Please try again.",
+          title: "Error",
+          description: response.error || "Failed to send OTP",
           variant: "destructive"
         });
       }
     } catch (error) {
-      if (error instanceof Error) {
-        toast({
-          title: "Error",
-          description: error.message || "An error occurred during sign up.",
-          variant: "destructive"
-        });
-      }
+      console.error("Signup error:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleVerifyOtp = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (otp.length !== 6) {
-      toast({
-        title: "Error",
-        description: "Please enter a valid 6-digit OTP",
-        variant: "destructive"
-      });
-      return;
-    }
-    
+  const handleOTPVerify = async (otp: string) => {
     setLoading(true);
-    
     try {
-      console.log("Verifying OTP:", { email: credentials.email, password: credentials.password, otp });
       const response = await verifyOtp(credentials.email, credentials.password, otp);
-      console.log("OTP verification response:", response);
-      
       if (response.authenticated) {
         toast({
           title: "Success",
           description: response.message || "OTP verified successfully.",
         });
-        
-        // Save UUID if available
         if (response.uuid) {
           setUuid(response.uuid);
         }
-        
-        // Move to registration step
         setCurrentStep(SignUpStep.REGISTRATION);
       } else {
         toast({
           title: "Error",
-          description: response.message || "Invalid or expired OTP.",
+          description: response.message || "Invalid OTP",
           variant: "destructive"
         });
       }
     } catch (error) {
-      if (error instanceof Error) {
-        toast({
-          title: "Error",
-          description: error.message || "An error occurred during OTP verification.",
-          variant: "destructive"
-        });
-      }
+      console.error("OTP verification error:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSubmitRegistration = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    
-    // Validate form fields
-    if (!formData.name || !formData.age || !formData.email || !formData.phone || !formData.address) {
-      toast({
-        title: "Error",
-        description: "Please fill in all required fields",
-        variant: "destructive"
-      });
-      return;
-    }
-    
+  const handlePatientRegistration = async (formData: any) => {
     setLoading(true);
-    
     try {
-      console.log("Submitting registration form:", formData);
       const response = await registerPatient(
-        uuid || getUserId() || "new-user", // Use stored UUID or fallback
+        uuid || "new-user",
         formData.name,
         parseInt(formData.age),
         formData.gender,
@@ -185,246 +93,29 @@ const SignUp = () => {
         formData.phone,
         formData.address
       );
-      console.log("Registration response:", response);
-      
+
       if (response.message === "Patient registered successfully" || response.message.includes("success")) {
         toast({
           title: "Success",
-          description: "Patient registered successfully. Redirecting to home page.",
+          description: "Registration successful. Redirecting to home page.",
         });
-        
-        // Store UUID if provided
-        if (response.uuid) {
-          setUuid(response.uuid);
-        }
-        
-        // Redirect to home page
         setTimeout(() => {
           navigate("/home");
         }, 1500);
       } else {
         toast({
           title: "Error",
-          description: response.message || "Failed to register patient",
+          description: response.message || "Registration failed",
           variant: "destructive"
         });
       }
     } catch (error) {
-      if (error instanceof Error) {
-        toast({
-          title: "Error",
-          description: error.message || "An error occurred during registration.",
-          variant: "destructive"
-        });
-      }
+      console.error("Registration error:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  // Render different steps based on current step
-  const renderStep = () => {
-    switch (currentStep) {
-      case SignUpStep.CREDENTIALS:
-        return (
-          <form onSubmit={handleSubmitCredentials} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 h-4 w-4" />
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  placeholder="john@example.com"
-                  required
-                  className="border-slate-200 pl-10"
-                  value={credentials.email}
-                  onChange={handleCredentialsChange}
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 h-4 w-4" />
-                <Input
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  required
-                  className="border-slate-200 pl-10"
-                  value={credentials.password}
-                  onChange={handleCredentialsChange}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    <Eye className="h-4 w-4" />
-                  )}
-                </button>
-              </div>
-            </div>
-            <Button
-              type="submit"
-              className="w-full bg-blue-500 hover:bg-blue-600"
-              disabled={loading}
-            >
-              {loading ? "Sending OTP..." : "Continue"}
-            </Button>
-          </form>
-        );
-        
-      case SignUpStep.OTP_VERIFICATION:
-        return (
-          <form onSubmit={handleVerifyOtp} className="space-y-4">
-            <div className="space-y-4">
-              <Label htmlFor="otp">Enter the OTP sent to your email</Label>
-              <div className="flex justify-center py-2">
-                <InputOTP 
-                  maxLength={6} 
-                  value={otp} 
-                  onChange={(value) => setOtp(value)}
-                  render={({ slots }) => (
-                    <InputOTPGroup>
-                      {slots.map((slot, index) => (
-                        <InputOTPSlot key={index} {...slot} index={index} />
-                      ))}
-                    </InputOTPGroup>
-                  )}
-                />
-              </div>
-              <p className="text-sm text-center text-gray-500">
-                Check your email for a 6-digit code and enter it above
-              </p>
-            </div>
-            <Button
-              type="submit"
-              className="w-full bg-blue-500 hover:bg-blue-600 mt-4"
-              disabled={loading}
-            >
-              {loading ? "Verifying..." : "Verify OTP"}
-            </Button>
-            <div className="text-center mt-2">
-              <button
-                type="button"
-                onClick={() => setCurrentStep(SignUpStep.CREDENTIALS)}
-                className="text-sm text-blue-500 hover:text-blue-700"
-              >
-                Back to Sign Up
-              </button>
-            </div>
-          </form>
-        );
-        
-      case SignUpStep.REGISTRATION:
-        return (
-          <form onSubmit={handleSubmitRegistration} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
-              <Input
-                id="name"
-                name="name"
-                placeholder="John Doe"
-                required
-                className="border-slate-200"
-                value={formData.name}
-                onChange={handlePatientFormChange}
-              />
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="age">Age</Label>
-                <Input
-                  id="age"
-                  name="age"
-                  type="number"
-                  placeholder="25"
-                  required
-                  className="border-slate-200"
-                  value={formData.age}
-                  onChange={handlePatientFormChange}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="gender">Gender</Label>
-                <select
-                  id="gender"
-                  name="gender"
-                  required
-                  className="flex h-10 w-full rounded-md border border-slate-200 bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                  value={formData.gender}
-                  onChange={handlePatientFormChange}
-                >
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="john@example.com"
-                required
-                className="border-slate-200"
-                value={formData.email}
-                onChange={handlePatientFormChange}
-                readOnly
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
-              <Input
-                id="phone"
-                name="phone"
-                placeholder="1234567890"
-                required
-                className="border-slate-200"
-                value={formData.phone}
-                onChange={handlePatientFormChange}
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="address">Address</Label>
-              <Input
-                id="address"
-                name="address"
-                placeholder="123 Main St, City"
-                required
-                className="border-slate-200"
-                value={formData.address}
-                onChange={handlePatientFormChange}
-              />
-            </div>
-            
-            <Button
-              type="submit"
-              className="w-full bg-blue-500 hover:bg-blue-600"
-              disabled={loading}
-            >
-              {loading ? "Registering..." : "Complete Registration"}
-            </Button>
-          </form>
-        );
-    }
-  };
-
-  // Determine title based on current step
   const getStepTitle = () => {
     switch (currentStep) {
       case SignUpStep.CREDENTIALS:
@@ -433,6 +124,34 @@ const SignUp = () => {
         return "Verify OTP";
       case SignUpStep.REGISTRATION:
         return "Patient Registration";
+    }
+  };
+
+  const renderStep = () => {
+    switch (currentStep) {
+      case SignUpStep.CREDENTIALS:
+        return (
+          <SignUpCredentials
+            onSubmit={handleCredentialsSubmit}
+            loading={loading}
+          />
+        );
+      case SignUpStep.OTP_VERIFICATION:
+        return (
+          <OTPVerification
+            onVerify={handleOTPVerify}
+            onBack={() => setCurrentStep(SignUpStep.CREDENTIALS)}
+            loading={loading}
+          />
+        );
+      case SignUpStep.REGISTRATION:
+        return (
+          <PatientRegistration
+            onSubmit={handlePatientRegistration}
+            initialEmail={credentials.email}
+            loading={loading}
+          />
+        );
     }
   };
 
