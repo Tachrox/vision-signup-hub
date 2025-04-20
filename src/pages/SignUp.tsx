@@ -6,6 +6,7 @@ import { toast } from "@/hooks/use-toast";
 import { SignUpStep } from "@/types/auth";
 import SignUpSteps from "@/components/signup/SignUpSteps";
 import SignUpLayout from "@/components/signup/SignUpLayout";
+import { getStepTitle, getStepSubtitle } from "@/utils/signUpStepUtils";
 
 const SignUp = () => {
   const [loading, setLoading] = useState(false);
@@ -108,32 +109,10 @@ const SignUp = () => {
     }
   };
 
-  const getStepTitle = () => {
-    switch (currentStep) {
-      case SignUpStep.CREDENTIALS:
-        return "Create your account";
-      case SignUpStep.OTP_VERIFICATION:
-        return "Verify your email";
-      case SignUpStep.REGISTRATION:
-        return "Complete your profile";
-    }
-  };
-
-  const getStepSubtitle = () => {
-    switch (currentStep) {
-      case SignUpStep.CREDENTIALS:
-        return "Sign up to access health predictions and personalized care";
-      case SignUpStep.OTP_VERIFICATION:
-        return "Enter the OTP sent to your email";
-      case SignUpStep.REGISTRATION:
-        return "Please provide your details to complete registration";
-    }
-  };
-
   return (
     <SignUpLayout
-      title={getStepTitle()}
-      subtitle={getStepSubtitle()}
+      title={getStepTitle(currentStep)}
+      subtitle={getStepSubtitle(currentStep)}
       showFooter={currentStep === SignUpStep.CREDENTIALS}
     >
       <SignUpSteps

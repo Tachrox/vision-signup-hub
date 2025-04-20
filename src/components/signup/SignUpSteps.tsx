@@ -1,5 +1,5 @@
 
-import { SignUpStep } from "@/types/auth";
+import { SignUpStep, PatientFormData } from "@/types/auth";
 import SignUpCredentials from "./SignUpCredentials";
 import OTPVerification from "./OTPVerification";
 import PatientRegistration from "./PatientRegistration";
@@ -10,7 +10,7 @@ interface SignUpStepsProps {
   credentials: { email: string };
   onCredentialsSubmit: (email: string, password: string) => Promise<void>;
   onOTPVerify: (otp: string) => Promise<void>;
-  onPatientRegistration: (formData: any) => Promise<void>;
+  onPatientRegistration: (formData: PatientFormData) => Promise<void>;
   onBack: () => void;
 }
 
