@@ -1,19 +1,11 @@
 
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { User } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { userSignUp, verifyOtp, registerPatient, getUserId } from "@/services";
 import { toast } from "@/hooks/use-toast";
-import SignUpCredentials from "@/components/signup/SignUpCredentials";
-import OTPVerification from "@/components/signup/OTPVerification";
-import PatientRegistration from "@/components/signup/PatientRegistration";
-
-enum SignUpStep {
-  CREDENTIALS = 'credentials',
-  OTP_VERIFICATION = 'otp_verification',
-  REGISTRATION = 'registration'
-}
+import { SignUpStep } from "@/types/auth";
+import SignUpSteps from "@/components/signup/SignUpSteps";
+import SignUpLayout from "@/components/signup/SignUpLayout";
 
 const SignUp = () => {
   const [loading, setLoading] = useState(false);
@@ -119,99 +111,41 @@ const SignUp = () => {
   const getStepTitle = () => {
     switch (currentStep) {
       case SignUpStep.CREDENTIALS:
-        return "Sign Up";
+        return "Create your account";
       case SignUpStep.OTP_VERIFICATION:
-        return "Verify OTP";
+        return "Verify your email";
       case SignUpStep.REGISTRATION:
-        return "Patient Registration";
+        return "Complete your profile";
     }
   };
 
-  const renderStep = () => {
+  const getStepSubtitle = () => {
     switch (currentStep) {
       case SignUpStep.CREDENTIALS:
-        return (
-          <SignUpCredentials
-            onSubmit={handleCredentialsSubmit}
-            loading={loading}
-          />
-        );
+        return "Sign up to access health predictions and personalized care";
       case SignUpStep.OTP_VERIFICATION:
-        return (
-          <OTPVerification
-            onVerify={handleOTPVerify}
-            onBack={() => setCurrentStep(SignUpStep.CREDENTIALS)}
-            loading={loading}
-          />
-        );
+        return "Enter the OTP sent to your email";
       case SignUpStep.REGISTRATION:
-        return (
-          <PatientRegistration
-            onSubmit={handlePatientRegistration}
-            initialEmail={credentials.email}
-            loading={loading}
-          />
-        );
+        return "Please provide your details to complete registration";
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-slate-50 to-slate-100 p-4">
-      <div className="w-full max-w-md space-y-8">
-        <div className="text-center">
-          <User className="mx-auto h-12 w-12 text-blue-500" />
-          {currentStep === SignUpStep.CREDENTIALS && (
-            <>
-              <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900">
-                Create your account
-              </h2>
-              <p className="mt-2 text-sm text-gray-600">
-                Sign up to access health predictions and personalized care
-              </p>
-            </>
-          )}
-          {currentStep === SignUpStep.OTP_VERIFICATION && (
-            <>
-              <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900">
-                Verify your email
-              </h2>
-              <p className="mt-2 text-sm text-gray-600">
-                Enter the OTP sent to your email
-              </p>
-            </>
-          )}
-          {currentStep === SignUpStep.REGISTRATION && (
-            <>
-              <h2 className="mt-6 text-3xl font-bold tracking-tight text-gray-900">
-                Complete your profile
-              </h2>
-              <p className="mt-2 text-sm text-gray-600">
-                Please provide your details to complete registration
-              </p>
-            </>
-          )}
-        </div>
-
-        <Card className="border-0 shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-xl">{getStepTitle()}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {renderStep()}
-          </CardContent>
-          {currentStep === SignUpStep.CREDENTIALS && (
-            <CardFooter className="justify-center">
-              <p className="text-sm text-gray-600">
-                Already have an account?{" "}
-                <Link to="/signin" className="text-blue-500 hover:text-blue-700">
-                  Sign in
-                </Link>
-              </p>
-            </CardFooter>
-          )}
-        </Card>
-      </div>
-    </div>
+    <SignUpLayout
+      title={getStepTitle()}
+      subtitle={getStepSubtitle()}
+      showFooter={currentStep === SignUpStep.CREDENTIALS}
+    >
+      <SignUpSteps
+        currentStep={currentStep}
+        loading={loading}
+        credentials={credentials}
+        onCredentialsSubmit={handleCredentialsSubmit}
+        onOTPVerify={handleOTPVerify}
+        onPatientRegistration={handlePatientRegistration}
+        onBack={() => setCurrentStep(SignUpStep.CREDENTIALS)}
+      />
+    </SignUpLayout>
   );
 };
 
